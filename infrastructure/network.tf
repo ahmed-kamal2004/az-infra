@@ -1,7 +1,7 @@
-resource "azurerm_network_security_group" "jenkins-network-security-group" {
-  name                = "jenkins-security-group"
-  location            = azurerm_resource_group.jenkins-resource-group.location
-  resource_group_name = azurerm_resource_group.jenkins-resource-group.name
+resource "azurerm_network_security_group" "aks-network-security-group" {
+  name                = "aks-security-group"
+  location            = azurerm_resource_group.aks-resource-group.location
+  resource_group_name = azurerm_resource_group.aks-resource-group.name
 
 
   security_rule {
@@ -30,7 +30,7 @@ resource "azurerm_network_security_group" "jenkins-network-security-group" {
 }
 
 resource "azurerm_virtual_network" "jenkins-virtual-network" {
-  name                = var.jenkins-virtual-network-name
+  name                = "aks-virtual-network"
   location            = azurerm_resource_group.jenkins-resource-group.location
   resource_group_name = azurerm_resource_group.jenkins-resource-group.name
   address_space       = ["10.0.0.0/16"]

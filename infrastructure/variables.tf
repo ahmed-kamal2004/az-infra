@@ -29,5 +29,5 @@ variable "msi_id" {
 variable "username" {
   type        = string
   description = "The admin username for the new cluster."
-  default     = "azureadmin"
+  default     = "admin"
 }
