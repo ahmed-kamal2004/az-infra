@@ -1,5 +1,6 @@
-# Install Java
+#!/bin/bash
 
+# Install Java
 apt install default-jre -y
 
 

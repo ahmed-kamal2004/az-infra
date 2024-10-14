@@ -1,0 +1,23 @@
+#cloud-config
+package_upgrade: true
+packages:
+  - nginx
+write_files:
+  - owner: www-data:www-data
+    path: /etc/nginx/sites-available/default
+    defer: true
+    content: |
+        server {
+            server_name localhost;
+            listen 80;
+            location / {
+                    proxy_pass http://localhost:8080;
+            }
+        }
+runcmd:
+  - apt install default-jre -y
+  - wget -O /usr/share/keyrings/jenkins-keyring.asc https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+  - echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc]" https://pkg.jenkins.io/debian-stable binary/ | sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null
+  - apt-get update
+  - apt-get install jenkins -y
+  - service nginx restart

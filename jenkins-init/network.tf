@@ -6,7 +6,7 @@ resource "azurerm_network_security_group" "jenkins-network-security-group" {
 
   security_rule {
     name                       = "ssh-rule"
-    priority                   = 100
+    priority                   = 200
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
@@ -18,15 +18,27 @@ resource "azurerm_network_security_group" "jenkins-network-security-group" {
   # SourceAddressPrefixes, SourceAddressPrefix, or SourceApplicationSecurityGroups.
   security_rule {
     name                       = "http-rule"
-    priority                   = 200
+    priority                   = 300
     direction                  = "Inbound"
     access                     = "Allow"
-    protocol                   = "Tcp"
+    protocol                   = "*"
     source_port_range          = "*"
     destination_port_range     = "80"
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
+  security_rule {
+    name                       = "https-rule"
+    priority                   = 400
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "*"
+    source_port_range          = "*"
+    destination_port_range     = "443"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
 }
 
 resource "azurerm_virtual_network" "jenkins-virtual-network" {
@@ -34,10 +46,6 @@ resource "azurerm_virtual_network" "jenkins-virtual-network" {
   location            = azurerm_resource_group.jenkins-resource-group.location
   resource_group_name = azurerm_resource_group.jenkins-resource-group.name
   address_space       = ["10.0.0.0/16"]
-  dns_servers         = ["10.0.0.4", "10.0.0.5"]
-  tags = {
-    environment = "Pipeline"
-  }
 }
 
 
@@ -48,10 +56,8 @@ resource "azurerm_subnet" "jenkins-public-subnet" {
   virtual_network_name = azurerm_virtual_network.jenkins-virtual-network.name
 }
 
-resource "azurerm_subnet_network_security_group_association" "example" {
-  subnet_id                 = azurerm_subnet.jenkins-public-subnet.id
-  network_security_group_id = azurerm_network_security_group.jenkins-network-security-group.id
-}
+
+
 
 resource "azurerm_network_interface" "jenkins-newtork-interface" {
   name = "jenkins-network-interface"
@@ -67,11 +73,15 @@ resource "azurerm_network_interface" "jenkins-newtork-interface" {
   }
 }
 
-
+resource "azurerm_network_interface_security_group_association" "jenkins-network-interface-sec-assoc" {
+  network_interface_id      = azurerm_network_interface.jenkins-newtork-interface.id
+  network_security_group_id = azurerm_network_security_group.jenkins-network-security-group.id
+}
 
 resource "azurerm_public_ip" "jenkins-public-ip" {
-  name                = "jenkins-public-ip"
-  location            = azurerm_resource_group.jenkins-resource-group.location
-  resource_group_name = azurerm_resource_group.jenkins-resource-group.name
-  allocation_method   = "Dynamic"
+  name                    = "jenkins-public-ip"
+  location                = azurerm_resource_group.jenkins-resource-group.location
+  resource_group_name     = azurerm_resource_group.jenkins-resource-group.name
+  allocation_method       = "Static"
+  idle_timeout_in_minutes = 30
 }
