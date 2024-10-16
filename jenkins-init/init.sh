@@ -40,5 +40,13 @@ http {
 }" > /etc/nginx/nginx.conf
 service nginx restart
 
+
+## Install jq "for trnasfering json to raw data"
+sudo apt-get install jq
+
+
+# Install python
+sudo apt install python3
+
 ## Outputs
 echo $JAVA_HOME
