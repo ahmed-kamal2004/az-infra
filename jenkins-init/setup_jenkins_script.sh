@@ -43,3 +43,4 @@ $CLI -auth devops:9341 install-plugin dashboard-view
 CLUMB=$(curl --location --insecure   --user 'admin':'password'   --url 'http://localhost:8080/crumbIssuer/api/json' --header ".crumb:uniquestringidentifer" | jq -r '.crumb')
 
 
+sudo service jenkins restart

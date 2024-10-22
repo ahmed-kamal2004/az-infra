@@ -57,31 +57,19 @@ resource "azurerm_subnet" "jenkins-public-subnet" {
 }
 
 
-
-
-resource "azurerm_network_interface" "jenkins-newtork-interface" {
-  name = "jenkins-network-interface"
-
-  location            = azurerm_resource_group.jenkins-resource-group.location
-  resource_group_name = azurerm_resource_group.jenkins-resource-group.name
-
-  ip_configuration {
-    name                          = "internal"
-    subnet_id                     = azurerm_subnet.jenkins-public-subnet.id
-    private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.jenkins-public-ip.id
-  }
-}
-
-resource "azurerm_network_interface_security_group_association" "jenkins-network-interface-sec-assoc" {
-  network_interface_id      = azurerm_network_interface.jenkins-newtork-interface.id
-  network_security_group_id = azurerm_network_security_group.jenkins-network-security-group.id
-}
-
-resource "azurerm_public_ip" "jenkins-public-ip" {
-  name                    = "jenkins-public-ip"
+resource "azurerm_public_ip" "jenkins-public-ip-master" {
+  name                    = "jenkins-public-ip-master"
   location                = azurerm_resource_group.jenkins-resource-group.location
   resource_group_name     = azurerm_resource_group.jenkins-resource-group.name
   allocation_method       = "Static"
   idle_timeout_in_minutes = 30
 }
+
+resource "azurerm_public_ip" "jenkins-public-ip-slave" {
+  name                    = "jenkins-public-ip-slave"
+  location                = azurerm_resource_group.jenkins-resource-group.location
+  resource_group_name     = azurerm_resource_group.jenkins-resource-group.name
+  allocation_method       = "Static"
+  idle_timeout_in_minutes = 30
+}
+
