@@ -237,6 +237,8 @@ Description: Docker: the open-source application container engine
     tar -cJf control.tar.xz -C DEBIAN .
     ar rcs docker-ce.deb debian-binary control.tar.xz data.tar.xz
     sudo apt-get install ./docker-ce.deb docker-ce-cli containerd docker-buildx-plugin docker-compose-plugin -y
+    sudo systemctl daemon-reload
+    sudo systemctl restart docker
 EOL
 
 
