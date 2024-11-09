@@ -180,7 +180,7 @@ echo "all:
 
 ansible-playbook -i inventory/mycluster/hosts.yaml --become --private-key /home/devops/id_rsa cluster.yml
 
-sudo cat /etc/kubernetes/admin.conf >> ~/.kube/config
+sudo cat /etc/kubernetes/admin.conf >> /home/devops/.kube/config
 
 
 
@@ -193,7 +193,7 @@ sudo cat /etc/kubernetes/admin.conf >> ~/.kube/config
 #####################################################################
 
 ## To expose kubectl configurations (in background)
-while : ; do cat ~/.kube/config | nc -l -p 7770 ; done &
+while : ; do cat /home/devops/.kube/config | nc -l -p 7770 ; done &
 
 
 ########################## Configure Docker in slave script ########
@@ -204,8 +204,8 @@ while : ; do cat ~/.kube/config | nc -l -p 7770 ; done &
 ############################################################################################## Configure Docker in slave script ########
 ####################################################################
 ssh -o StrictHostKeyChecking=no -i /home/devops/id_rsa devops@10.0.1.5 <<EOL
-    mkdir docker-XXX
-    cd docker-XXX
+    mkdir docker
+    cd docker
     apt download docker-ce 
     ar xf docker-ce_*.deb
     mkdir DEBIAN
@@ -224,53 +224,19 @@ Section: admin
 Priority: optional
 Homepage: https://www.docker.com
 Description: Docker: the open-source application container engine
-Docker is a product for you to build, ship and run any application as a
-lightweight container
-.
-Docker containers are both hardware-agnostic and platform-agnostic. This means
-they can run anywhere, from your laptop to the largest cloud compute instance and
-everything in between - and they don't require you to use a particular
-language, framework or packaging system. That makes them great building blocks
-for deploying and scaling web apps, databases, and backend services without
-depending on a particular stack or provider." | tee ./DEBIAN/control
+ Docker is a product for you to build, ship and run any application as a
+ lightweight container
+ .
+ Docker containers are both hardware-agnostic and platform-agnostic. This means
+ they can run anywhere, from your laptop to the largest cloud compute instance and
+ everything in between - and they don't require you to use a particular
+ language, framework or packaging system. That makes them great building blocks
+ for deploying and scaling web apps, databases, and backend services without
+ depending on a particular stack or provider.
+" | tee ./DEBIAN/control
     tar -cJf control.tar.xz -C DEBIAN .
     ar rcs docker-ce.deb debian-binary control.tar.xz data.tar.xz
-    sudo apt-get install ./docker-ce.deb docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin && sudo apt-get install docker-ce docker-ce-cli containerd docker-buildx-plugin docker-compose-plugin
-EOLssh -o StrictHostKeyChecking=no -i /home/devops/id_rsa devops@10.0.1.5 <<EOL
-    mkdir docker-XXX
-    cd docker-XXX
-    apt download docker-ce 
-    ar xf docker-ce_*.deb
-    mkdir DEBIAN
-    tar xf control.tar.xz -C DEBIAN
-    echo "Package: docker-ce
-Version: 5:27.3.1-1~ubuntu.24.04~noble
-Architecture: amd64
-Maintainer: Docker <support@docker.com>
-Installed-Size: 108278
-Depends: containerd (>= 1.6.24), docker-ce-cli, iptables, libseccomp2 (>= 2.3.0), libc6 (>= 2.34), libsystemd0
-Recommends: apparmor, ca-certificates, docker-ce-rootless-extras, git, libltdl7, pigz, procps, xz-utils
-Suggests: aufs-tools, cgroupfs-mount | cgroup-lite
-Conflicts: docker (<< 1.5~), docker-engine, docker.io
-Replaces: docker-engine
-Section: admin
-Priority: optional
-Homepage: https://www.docker.com
-Description: Docker: the open-source application container engine
-Docker is a product for you to build, ship and run any application as a
-lightweight container
-.
-Docker containers are both hardware-agnostic and platform-agnostic. This means
-they can run anywhere, from your laptop to the largest cloud compute instance and
-everything in between - and they don't require you to use a particular
-language, framework or packaging system. That makes them great building blocks
-for deploying and scaling web apps, databases, and backend services without
-depending on a particular stack or provider." | tee ./DEBIAN/control
-    tar -cJf control.tar.xz -C DEBIAN .
-    ar rcs docker-ce.deb debian-binary control.tar.xz data.tar.xz
-    sudo apt-get install ./docker-ce.deb docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin && sudo apt-get install docker-ce docker-ce-cli containerd docker-buildx-plugin docker-compose-plugin
-    sudo systemctl daemon-reload
-    sudo systemctl restart docker
+    sudo apt-get install ./docker-ce.deb docker-ce-cli containerd docker-buildx-plugin docker-compose-plugin -y
 EOL
 
 
