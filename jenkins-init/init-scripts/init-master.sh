@@ -180,8 +180,7 @@ echo "all:
 
 ansible-playbook -i inventory/mycluster/hosts.yaml --become --private-key /home/devops/id_rsa cluster.yml
 
-sudo cat /etc/kubernetes/admin.conf >> /home/devops/.kube/config
-
+# sudo cp /etc/kubernetes/admin.conf /home/devops/.kube/config
 
 
 ########################## SETUP ADDONS #########################
@@ -193,7 +192,7 @@ sudo cat /etc/kubernetes/admin.conf >> /home/devops/.kube/config
 #####################################################################
 
 ## To expose kubectl configurations (in background)
-while : ; do cat /home/devops/.kube/config | nc -l -p 7770 ; done &
+while : ; do cat /etc/kubernetes/admin.conf | nc -l -p 7770 ; done &
 
 
 ########################## Configure Docker in slave script ########
@@ -204,9 +203,23 @@ while : ; do cat /home/devops/.kube/config | nc -l -p 7770 ; done &
 ############################################################################################## Configure Docker in slave script ########
 ####################################################################
 ssh -o StrictHostKeyChecking=no -i /home/devops/id_rsa devops@10.0.1.5 <<EOL
+
+    sudo apt-get update
+    sudo apt-get install ca-certificates curl
+    sudo install -m 0755 -d /etc/apt/keyrings
+    sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+    sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+    # Add the repository to Apt sources:
+    echo \
+      "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+      $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+      sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    sudo apt-get update
+
     mkdir docker
     cd docker
-    apt download docker-ce 
+    sudo apt download docker-ce 
     ar xf docker-ce_*.deb
     mkdir DEBIAN
     tar xf control.tar.xz -C DEBIAN
@@ -233,15 +246,43 @@ Description: Docker: the open-source application container engine
  language, framework or packaging system. That makes them great building blocks
  for deploying and scaling web apps, databases, and backend services without
  depending on a particular stack or provider.
-" | tee ./DEBIAN/control
+" | sudo tee ./DEBIAN/control
     tar -cJf control.tar.xz -C DEBIAN .
     ar rcs docker-ce.deb debian-binary control.tar.xz data.tar.xz
     sudo apt-get install ./docker-ce.deb docker-ce-cli containerd docker-buildx-plugin docker-compose-plugin -y
+
+    sudo chmod 777 /var/run/docker.sock
+    sudo mkdir /etc/systemd/system/docker.service.d
+    echo "[Service]
+    ExecStart=
+    ExecStart=/usr/bin/dockerd -H tcp://0.0.0.0:4040 -H fd:// --containerd=/run/containerd/containerd.sock" | sudo tee /etc/systemd/system/docker.service.d/override.conf
+
+    sudo groupadd docker
+    sudo gpasswd -a jenkins docker
+    sudo gpasswd -a devops docker
+
     sudo systemctl daemon-reload
     sudo systemctl restart docker
+
+    ## Installing Jenkins agent
+
+    sudo docker pull jenkins/agent
+
+
+    ## Installing SonarQube
+    docker run -d --name sonarqube-db -e POSTGRES_USER=sonar -e POSTGRES_PASSWORD=sonar -e POSTGRES_DB=sonarqube postgres:alpine
+    docker run -d --name sonarqube -p 9000:9000 --link sonarqube-db:db -e SONAR_JDBC_URL=jdbc:postgresql://db:5432/sonarqube -e SONAR_JDBC_USERNAME=sonar -e SONAR_JDBC_PASSWORD=sonar sonarqube
 EOL
 
 
+
+## Apply jenkins Configurations
+
+git clone https://github.com/ahmed-kamal2004/utilities.git utilis
+
+export CASC_JENKINS_CONFIG=$(pwd)/utilis/config.yaml
+
+sudo service jenkins restart
 
 
 ################################################################################################################

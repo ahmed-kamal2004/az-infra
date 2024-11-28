@@ -1,5 +1,5 @@
 ## To get config for kubectl
-timeout 3 nc -q 2 74.176.61.184 7770 | tee ff | awk '/EOF/ {exit}'
+timeout 3 nc -q 2 10.0.1.5 7770 | tee ff | awk '/EOF/ {exit}'
 
 ## To use with kubectl
 kubectl --kubeconfig=ff get pods -A
