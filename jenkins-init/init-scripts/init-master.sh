@@ -270,17 +270,16 @@ Description: Docker: the open-source application container engine
 
 
     ## Installing SonarQube
-    docker run -d --name sonarqube-db -e POSTGRES_USER=sonar -e POSTGRES_PASSWORD=sonar -e POSTGRES_DB=sonarqube postgres:alpine
-    docker run -d --name sonarqube -p 9000:9000 --link sonarqube-db:db -e SONAR_JDBC_URL=jdbc:postgresql://db:5432/sonarqube -e SONAR_JDBC_USERNAME=sonar -e SONAR_JDBC_PASSWORD=sonar sonarqube
+    sudo sysctl -w vm.max_map_count=262500
+    docker run -d --name sonardb -e POSTGRES_USER=sonar -e POSTGRES_PASSWORD=sonar -e POSTGRES_DB=sonarqube postgres:alpine
+    docker run -d --name sonarqube -p 9000:9000 -e SONAR_JDBC_URL=jdbc:postgresql://sonardb:5432/sonarqube -e SONAR_JDBC_USERNAME=sonar -e SONAR_JDBC_PASSWORD=sonar sonarqube
 EOL
 
 
 
 ## Apply jenkins Configurations
 
-git clone https://github.com/ahmed-kamal2004/utilities.git utilis
-
-export CASC_JENKINS_CONFIG=$(pwd)/utilis/config.yaml
+export CASC_JENKINS_CONFIG=https://raw.githubusercontent.com/ahmed-kamal2004/utilities/main/config.yaml
 
 sudo service jenkins restart
 

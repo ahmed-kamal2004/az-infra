@@ -1,5 +1,13 @@
 ## To get config for kubectl
-timeout 3 nc -q 2 10.0.1.5 7770 | tee ff | awk '/EOF/ {exit}'
+timeout 4 nc -q 2 10.0.1.4 7770 | tee ff | awk '/EOF/ {exit}'
+
+
+git clone https://github.com/ahmed-kamal2004/kube-config-SW
+
+
+kubectl --kubeconfig=ff apply -f ./kube-config-SW/back-config-map.yaml
+kubectl --kubeconfig=ff apply -f ./kube-config-SW/db-deploy.yaml
+kubectl --kubeconfig=ff apply -f ./kube-config-SW/back-deploy.yaml
 
 ## To use with kubectl
 kubectl --kubeconfig=ff get pods -A
