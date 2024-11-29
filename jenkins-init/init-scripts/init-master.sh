@@ -94,7 +94,7 @@ $CLI -auth devops:9341 install-plugin ldap
 $CLI -auth devops:9341 install-plugin dashboard-view
 $CLI -auth devops:9341 install-plugin docker-plugin
 $CLI -auth devops:9341 install-plugin github:1.37.0
-
+$CLI -auth devops:9341 install-plugin docker-workflow
 # CLUMB=$(curl --location --insecure   --user 'admin':'password'   --url 'http://localhost:8080/crumbIssuer/api/json' --header ".crumb:uniquestringidentifer" | jq -r '.crumb')
 
 # Skip setup wizard
@@ -290,3 +290,9 @@ sudo service jenkins restart
 # EEEEEE    N    N   N  DD     DD 
 # EE        N     N NN  DD    DD 
 # EEEEEEEE  N      NNN  DDDDDD  
+
+#  BBBBBB    YY   YY         AAA     HH   HH   M   M   EEEEEEEE  DDDDDD           KK   KK     AAA     MM    MM    AAA     L
+#  B    BB    YY YY        AA   AA   HH   HH   MM MM   EE        DD    DD         KK  KK    AA   AA   M M  M M  AA   AA   L
+#  BBBBBBBB     Y          AAAAAAA   HHHHHHH   M M M   EEEEEEEE  DD     DD        KK KK     AAAAAAA   M  MM  M  AAAAAAA   L
+#  B    BB      Y          A     A   HH   HH   M   M   EE        DD    DD         KK  KK    A     A   M      M  A     A   L
+#  BBBBBB       Y          A     A   HH   HH   M   M   EEEEEEEE  DDDDDD           KK   KK   A     A   M      M  A     A   LLLLLL
