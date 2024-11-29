@@ -8,6 +8,11 @@ git clone https://github.com/ahmed-kamal2004/kube-config-SW
 kubectl --kubeconfig=ff apply -f ./kube-config-SW/back-config-map.yaml
 kubectl --kubeconfig=ff apply -f ./kube-config-SW/db-deploy.yaml
 kubectl --kubeconfig=ff apply -f ./kube-config-SW/back-deploy.yaml
+kubectl --kubeconfig=ff apply -f ./kube-config-SW/front-deploy.yaml
+
+
+
+
 
 ## To use with kubectl
 kubectl --kubeconfig=ff get pods -A

@@ -30,6 +30,11 @@ sudo apt-get install jenkins -y
 ## Install nginx
 apt install nginx -y
 
+## Install certbot
+sudo apt install certbot python3-certbot-nginx -y
+
+## Update the domain of mazrof.work.gd
+curl https://api.dnsexit.com/dns/ud/?apikey=139YbFblFlIzai7Be936I64FoBJHJs -d host=mazrof-back.work.gd
 
 ## Configuring Nginx
 echo "user www-data;
@@ -41,15 +46,35 @@ events {
         worker_connections 768;
 }
 http {
-  server {
-        server_name localhost;
-        listen 80;
-        location / {
-                proxy_pass http://localhost:8080;
-        }
+
+  upstream backend {
+    server 10.0.1.4:30002 weight=1;
+    server 10.0.1.5:30002 weight=1;
   }
-}" > /etc/nginx/nginx.conf
-service nginx restart
+
+  server {
+    listen 80;
+    server_name mazrof-back.work.gd;
+
+    location / {
+        proxy_pass http://backend;
+    }
+  }
+
+}" | sudo tee /etc/nginx/nginx.conf
+
+## Check nginx
+sudo nginx -t
+## Restart nginx
+sudo service nginx restart
+
+sudo certbot -n --nginx -d mazrof-back.work.gd --register-unsafely-without-email --agree-tos
+
+
+## Restart nginx
+sudo service nginx restart
+
+
 
 
 #### Install Jenkins CLI and Plugins

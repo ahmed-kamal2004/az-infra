@@ -33,21 +33,6 @@ http {
         proxy_pass http://frontend;
     }
   }
-
-  upstream backend {
-    server 10.0.1.4:30002 weight=1;
-    server 10.0.1.5:30002 weight=1;
-  }
-
-  server {
-    listen 80;
-    server_name mazrof.work.gd;
-
-    location / {
-        proxy_pass http://backend;
-    }
-  }
-
 }" | sudo tee /etc/nginx/nginx.conf
 
 
