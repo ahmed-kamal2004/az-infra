@@ -49,7 +49,7 @@ events {
         worker_connections 768;
 }
 http {
-  upstream backend {
+  upstream frontend {
   	server 10.0.1.4:30001 weight=1;
   	server 10.0.1.5:30001 weight=1;
   }
@@ -60,6 +60,20 @@ http {
 
     ssl_certificate /etc/nginx/selfsigned.crt;
     ssl_certificate_key /etc/nginx/selfsigned.key;
+
+    location / {
+        proxy_pass http://frontend;
+    }
+  }
+
+  upstream backend {
+  	server 10.0.1.4:30002 weight=1;
+  	server 10.0.1.5:30002 weight=1;
+  }
+
+  server {
+	listen 80;
+    server_name _;
 
     location / {
         proxy_pass http://backend;
