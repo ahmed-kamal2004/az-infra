@@ -41,6 +41,8 @@ sudo nginx -t
 ## Restart nginx
 sudo service nginx restart
 
+## Sleep waiting for ip change esma3
+sleep 3m 0s
 sudo certbot -n --nginx -d mazrof.work.gd --register-unsafely-without-email --agree-tos
 
 

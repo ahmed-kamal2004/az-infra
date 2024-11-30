@@ -68,6 +68,8 @@ sudo nginx -t
 ## Restart nginx
 sudo service nginx restart
 
+## Sleep waiting for ip change esma3
+sleep 3m 0s
 sudo certbot -n --nginx -d mazrof-back.work.gd --register-unsafely-without-email --agree-tos
 
 
@@ -321,3 +323,27 @@ sudo service jenkins restart
 #  BBBBBBBB     Y          AAAAAAA   HHHHHHH   M M M   EEEEEEEE  DD     DD        KK KK     AAAAAAA   M  MM  M  AAAAAAA   L
 #  B    BB      Y          A     A   HH   HH   M   M   EE        DD    DD         KK  KK    A     A   M      M  A     A   L
 #  BBBBBB       Y          A     A   HH   HH   M   M   EEEEEEEE  DDDDDD           KK   KK   A     A   M      M  A     A   LLLLLL
+
+
+
+
+## For Phase 3
+
+## To get config for kubectl
+timeout 4 nc -q 2 10.0.1.4 7770 | tee ff | awk '/EOF/ {exit}'
+
+
+git clone https://github.com/ahmed-kamal2004/kube-config-SW
+
+
+kubectl --kubeconfig=ff apply -f ./kube-config-SW/back-config-map.yaml
+kubectl --kubeconfig=ff apply -f ./kube-config-SW/db-deploy.yaml
+kubectl --kubeconfig=ff apply -f ./kube-config-SW/back-deploy.yaml
+kubectl --kubeconfig=ff apply -f ./kube-config-SW/front-deploy.yaml
+
+
+
+
+
+## To use with kubectl
+kubectl --kubeconfig=ff get pods -A
