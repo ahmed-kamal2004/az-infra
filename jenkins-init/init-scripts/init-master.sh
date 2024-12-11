@@ -56,9 +56,16 @@ http {
     listen 80;
     server_name mazrof-back.work.gd;
 
-    location / {
-        proxy_pass http://backend;
+    ## Application Backend
+    location /api/ {
+     proxy_pass http://backend/;
     }
+
+    ## Jenkins
+    location  / {
+      proxy_pass http://localhost:8080/;
+    }
+
   }
 
 }" | sudo tee /etc/nginx/nginx.conf
@@ -340,6 +347,7 @@ kubectl --kubeconfig=ff apply -f ./kube-config-SW/back-config-map.yaml
 kubectl --kubeconfig=ff apply -f ./kube-config-SW/db-deploy.yaml
 kubectl --kubeconfig=ff apply -f ./kube-config-SW/back-deploy.yaml
 kubectl --kubeconfig=ff apply -f ./kube-config-SW/front-deploy.yaml
+kubectl --kubeconfig=ff apply -f ./kube-config-SW/redis-deploy.yaml
 
 
 

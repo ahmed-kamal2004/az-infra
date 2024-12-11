@@ -24,6 +24,10 @@ http {
     server 10.0.1.4:30001 weight=1;
     server 10.0.1.5:30001 weight=1;
   }
+  upstream backend {
+    server 10.0.1.4:30002 weight=1;
+    server 10.0.1.5:30002 weight=1;
+  }
 
   server {
     listen 80;

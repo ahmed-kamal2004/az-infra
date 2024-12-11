@@ -12,6 +12,9 @@ terraform output -raw slave_vm_public_ip > ../slave_vm_public_ip
 
 cd ..
 
+
+## Copy the private key
 scp -o StrictHostKeyChecking=no -i ./id_rsa ./id_rsa devops@$(cat master_vm_public_ip):/home/devops/
 
+## ssh to master by default
 ssh -o StrictHostKeyChecking=no -i ./id_rsa devops@$(cat master_vm_public_ip)

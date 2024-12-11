@@ -1,0 +1,28 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/Mazrof/back.git']])
+            }
+        }
+        stage( 'check node ') {
+            steps {
+                sh 'node -v'
+            }
+        }
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm install'
+            }
+        }
+        
+        stage('Check Code') {
+            steps {
+                sh 'npm run check'
+            }
+        }
+        
+    }
+}
