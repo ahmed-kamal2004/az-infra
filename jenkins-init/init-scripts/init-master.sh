@@ -105,6 +105,7 @@ instance.setSecurityRealm(hudsonRealm)
 instance.save()
 EOF
 
+
 ## Plugins
 $CLI -auth devops:9341 install-plugin dashboard-view
 $CLI -auth devops:9341 install-plugin configuration-as-code
