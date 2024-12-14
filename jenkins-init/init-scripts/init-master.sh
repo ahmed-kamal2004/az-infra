@@ -214,7 +214,8 @@ echo "all:
 
 ansible-playbook -i inventory/mycluster/hosts.yaml --become --private-key /home/devops/id_rsa cluster.yml
 
-# sudo cp /etc/kubernetes/admin.conf /home/devops/.kube/config
+
+mkdir -p /home/devops/.kube && sudo cp /etc/kubernetes/admin.conf /home/devops/.kube/config && sudo chmod 777 /home/devops/.kube/config
 
 
 ########################## SETUP ADDONS #########################

@@ -1,10 +1,15 @@
 pipeline {
-    agent any
+    agent {
+        label 'docker_agent_template'
+    }
 
+    environment {
+        DOCKER_IMAGE_NAME = 'ahmedkamal200427400/front-app'
+    }
     stages {
         stage('Checkout') {
             steps {
-                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/Mazrof/front.git']])
+                checkout scmGit(branches: [[name: '*/dev']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/Mazrof/front.git']])
             }
         }
         stage('Install Dependencies') {
@@ -12,6 +17,63 @@ pipeline {
                 sh 'npm install'
             }
         }
+        stage('Build Code') {
+            steps {
+                sh 'npm run build'
+            }
+        }
+        stage('Test Code'){
+            steps {
+                sh 'npm run test'
+            }
+        }
+        stage('Build Image'){
+            steps {
+                script {
+                    
+                    def fbuildNumber = (env.BUILD_NUMBER.toInteger() + 1000)
+                    
+                    def dockerTag = "${DOCKER_IMAGE_NAME}:build-${fbuildNumber}"
+                    
+                    def latestTag = "${DOCKER_IMAGE_NAME}:latest"
+                    
+                    sh "docker build -t ${dockerTag} ."
+                    
+                    sh "docker tag ${dockerTag} ${latestTag}"
+                }
+            }
+        }
         
+        stage ('Push Image') {
+            steps {
+                
+                withCredentials([usernamePassword(
+                    credentialsId: 'Docker-Cred',
+                    usernameVariable: 'DOCKER_USERNAME',
+                    passwordVariable: 'DOCKER_PASSWORD'
+                )]){
+                    script {
+                        
+                        def fbuildNumber = (env.BUILD_NUMBER.toInteger() + 1000)
+                        
+                        def dockerTag = "${DOCKER_IMAGE_NAME}:build-${fbuildNumber}"
+                        
+                        def latestTag = "${DOCKER_IMAGE_NAME}:latest"
+                        
+                        sh 'echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin'
+                        
+                        sh "docker push ${dockerTag}"
+                        
+                        sh "docker push ${latestTag}"
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "GAAAAMMMEDdddddd!"
+        }
     }
 }

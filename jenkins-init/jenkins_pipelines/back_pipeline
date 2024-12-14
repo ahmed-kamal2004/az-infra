@@ -1,15 +1,16 @@
 pipeline {
-    agent any
+    agent {
+        label 'docker_agent_template'
+    }
 
+    environment {
+        DOCKER_IMAGE_NAME = 'ahmedkamal200427400/back-app'
+        CONFIG_REPO = 'https://github.com/ahmed-kamal2004/kube-config-SW'
+    }
     stages {
         stage('Checkout') {
             steps {
                 checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/Mazrof/back.git']])
-            }
-        }
-        stage( 'check node ') {
-            steps {
-                sh 'node -v'
             }
         }
         stage('Install Dependencies') {
@@ -17,12 +18,103 @@ pipeline {
                 sh 'npm install'
             }
         }
-        
         stage('Check Code') {
             steps {
                 sh 'npm run check'
             }
         }
+        stage('Prepare Code for Deploy'){
+            steps {
+                withCredentials([string(credentialsId: 'SERVICE_ACCOUNT_KEY', variable: 'SERVICE_ACCOUNT_KEY')]) {
+                    script {
+                        writeFile file: "serviceAccountKey.json", text: "${SERVICE_ACCOUNT_KEY}"
+                    }
+                }
+            }
+        }
+        stage('Build Image'){
+            steps {
+                script {
+                    
+                    def fbuildNumber = (env.BUILD_NUMBER.toInteger() + 1000)
+                    
+                    def dockerTag = "${DOCKER_IMAGE_NAME}:build-${fbuildNumber}"
+                    
+                    def latestTag = "${DOCKER_IMAGE_NAME}:latest"
+                    
+                    sh "docker build -t ${dockerTag} ."
+                    
+                    sh "docker tag ${dockerTag} ${latestTag}"
+                }
+            }
+        }
         
+        stage ('Push Image') {
+            steps {
+                
+                withCredentials([usernamePassword(
+                    credentialsId: 'Docker-Cred',
+                    usernameVariable: 'DOCKER_USERNAME',
+                    passwordVariable: 'DOCKER_PASSWORD'
+                )]){
+                    script {
+                        
+                        def fbuildNumber = (env.BUILD_NUMBER.toInteger() + 1000)
+                        
+                        def dockerTag = "${DOCKER_IMAGE_NAME}:build-${fbuildNumber}"
+                        
+                        def latestTag = "${DOCKER_IMAGE_NAME}:latest"
+                        
+                        sh 'echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin'
+                        
+                        sh "docker push ${dockerTag}"
+                        
+                        sh "docker push ${latestTag}"
+                    }
+                }
+            }
+        }
+
+        stage('Deploy'){
+            steps {
+                
+                script {
+
+                    def fbuildNumber = (env.BUILD_NUMBER.toInteger() + 1000)    
+                    def dockerTag = "${DOCKER_IMAGE_NAME}:build-${fbuildNumber}"
+                    
+                    
+                    sh 'apt-get update && apt-get install -y netcat-traditional'
+                    sh "timeout 4 nc -q 2 10.0.1.4 7770 | tee k | awk '/EOF/ {exit}'"
+                    sh "git clone ${CONFIG_REPO}"
+
+
+
+                    sh "kubectl --kubeconfig=k apply -f ./kube-config-SW/back-config-map.yaml --validate=false"
+                    sh "kubectl --kubeconfig=k apply -f ./kube-config-SW/db-deploy.yaml --validate=false"
+                    sh "kubectl --kubeconfig=k apply -f ./kube-config-SW/back-deploy.yaml --validate=false"
+
+
+                    sh "kubectl --kubeconfig=k set image deployment/back-app back-container=${dockerTag}"
+
+                }
+            }
+        }
+        
+        stage('Clean Docker Images') {
+            steps {
+                script {
+                    def fbuildNumber = (env.BUILD_NUMBER.toInteger() + 1000)    
+                    def dockerTag = "${DOCKER_IMAGE_NAME}:build-${fbuildNumber}"
+                    sh "docker image remove ${dockerTag} --force"
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "GAAAAAAMeed!!!!"
+        }
     }
 }
