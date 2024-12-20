@@ -77,7 +77,8 @@ sudo service nginx restart
 
 ## Sleep waiting for ip change esma3
 sleep 3m 0s
-sudo certbot -n --nginx -d mazrof-back.work.gd --register-unsafely-without-email --agree-tos
+# sudo certbot -n --nginx -d mazrof-back.work.gd --register-unsafely-without-email --agree-tos
+sudo certbot -n --nginx -d mazrof-back.work.gd  -d jenkins.mazrof-back.work.gd  -d api.mazrof-back.work.gd  --register-unsafely-without-email --agree-tos
 
 
 ## Restart nginx

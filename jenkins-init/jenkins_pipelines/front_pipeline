@@ -5,11 +5,13 @@ pipeline {
 
     environment {
         DOCKER_IMAGE_NAME = 'ahmedkamal200427400/front-app'
+        CONFIG_REPO = 'https://github.com/ahmed-kamal2004/kube-config-SW'
+        IMAGE_CREATED = 'false'
     }
     stages {
         stage('Checkout') {
             steps {
-                checkout scmGit(branches: [[name: '*/dev']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/Mazrof/front.git']])
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/Mazrof/front.git']])
             }
         }
         stage('Install Dependencies') {
@@ -17,28 +19,39 @@ pipeline {
                 sh 'npm install'
             }
         }
-        stage('Build Code') {
+        stage('Check Code') {
             steps {
-                sh 'npm run build'
+                sh 'npm run check'
             }
         }
-        stage('Test Code'){
+        stage('Prepare Code for Deploy'){
             steps {
-                sh 'npm run test'
+                withCredentials([string(credentialsId: 'SERVICE_ACCOUNT_KEY', variable: 'SERVICE_ACCOUNT_KEY')]) {
+                    script {
+                        writeFile file: "serviceAccountKey.json", text: "${SERVICE_ACCOUNT_KEY}"
+                    }
+                }
             }
         }
         stage('Build Image'){
             steps {
                 script {
-                    
+
                     def fbuildNumber = (env.BUILD_NUMBER.toInteger() + 1000)
-                    
+                        
                     def dockerTag = "${DOCKER_IMAGE_NAME}:build-${fbuildNumber}"
-                    
+                        
                     def latestTag = "${DOCKER_IMAGE_NAME}:latest"
-                    
-                    sh "docker build -t ${dockerTag} ."
-                    
+
+
+                    try {
+                        sh "docker build -t ${dockerTag} ."
+                        env.IMAGE_CREATED = "true"
+                    }catch(Exception e){
+                        env.IMAGE_CREATED = "false"
+                        error("Docker image build failed.")
+                    }
+
                     sh "docker tag ${dockerTag} ${latestTag}"
                 }
             }
@@ -69,11 +82,45 @@ pipeline {
                 }
             }
         }
+
+        stage('Deploy'){
+            steps {
+                
+                script {
+
+                    def fbuildNumber = (env.BUILD_NUMBER.toInteger() + 1000)    
+                    def dockerTag = "${DOCKER_IMAGE_NAME}:build-${fbuildNumber}"
+                    
+                    
+                    sh 'apt-get update && apt-get install -y netcat-traditional'
+                    sh "timeout 4 nc -q 2 10.0.1.4 7770 | tee k | awk '/EOF/ {exit}'"
+                    sh "git clone ${CONFIG_REPO}"
+
+
+                    sh "kubectl --kubeconfig=k apply -f ./kube-config-SW/front-deploy.yaml --validate=false"
+
+
+                    sh "kubectl --kubeconfig=k set image deployment/front-app front-container=${dockerTag}"
+
+                }
+            }
+        }
     }
 
     post {
         success {
-            echo "GAAAAMMMEDdddddd!"
+            echo "GAAAAAAMeed!!!!"
+        }
+
+        always {
+            echo "Always!!!!"
+            script {
+                if(env.IMAGE_CREATED == "true"){
+                    def fbuildNumber = (env.BUILD_NUMBER.toInteger() + 1000)    
+                    def dockerTag = "${DOCKER_IMAGE_NAME}:build-${fbuildNumber}"
+                    sh "docker image remove ${dockerTag} --force"
+                }
+            }
         }
     }
 }

@@ -6,6 +6,7 @@ pipeline {
     environment {
         DOCKER_IMAGE_NAME = 'ahmedkamal200427400/back-app'
         CONFIG_REPO = 'https://github.com/ahmed-kamal2004/kube-config-SW'
+        IMAGE_CREATED = 'false'
     }
     stages {
         stage('Checkout') {
@@ -35,15 +36,22 @@ pipeline {
         stage('Build Image'){
             steps {
                 script {
-                    
+
                     def fbuildNumber = (env.BUILD_NUMBER.toInteger() + 1000)
-                    
+                        
                     def dockerTag = "${DOCKER_IMAGE_NAME}:build-${fbuildNumber}"
-                    
+                        
                     def latestTag = "${DOCKER_IMAGE_NAME}:latest"
-                    
-                    sh "docker build -t ${dockerTag} ."
-                    
+
+
+                    try {
+                        sh "docker build -t ${dockerTag} ."
+                        IMAGE_CREATED = "true"
+                    }catch(Exception e){
+                        IMAGE_CREATED = "false"
+                        error("Docker image build failed.")
+                    }
+
                     sh "docker tag ${dockerTag} ${latestTag}"
                 }
             }
@@ -100,21 +108,22 @@ pipeline {
                 }
             }
         }
-        
-        stage('Clean Docker Images') {
-            steps {
-                script {
-                    def fbuildNumber = (env.BUILD_NUMBER.toInteger() + 1000)    
-                    def dockerTag = "${DOCKER_IMAGE_NAME}:build-${fbuildNumber}"
-                    sh "docker image remove ${dockerTag} --force"
-                }
-            }
-        }
     }
 
     post {
         success {
             echo "GAAAAAAMeed!!!!"
+        }
+
+        always {
+            echo "Always!!!!"
+            script {
+                if(IMAGE_CREATED == "true"){
+                    def fbuildNumber = (env.BUILD_NUMBER.toInteger() + 1000)    
+                    def dockerTag = "${DOCKER_IMAGE_NAME}:build-${fbuildNumber}"
+                    sh "docker image remove ${dockerTag} --force"
+                }
+            }
         }
     }
 }
